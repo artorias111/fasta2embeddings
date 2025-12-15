@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 COMP = {'A':'T', 'T':'A', 'C':'G', 'G': 'C', 'N':'N'}
-
+from sklearn.preprocessing import LabelEncoder
 le = LabelEncoder()
 le.fit(['A', 'T', 'G', 'C', 'N'])
 

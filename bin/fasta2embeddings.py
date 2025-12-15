@@ -1,17 +1,11 @@
 #!/usr/bin/env python3
 
-import torch
-import torch.nn as nn
-from sklearn.preprocessing import LabelEncoder
-import numpy as np
-
-# from evo2 import Evo2
-# evo2_model = Evo2('evo2_7b')
+COMP = {'A':'T', 'T':'A', 'C':'G', 'G': 'C', 'N':'N'}
 
 le = LabelEncoder()
 le.fit(['A', 'T', 'G', 'C', 'N'])
 
-def tokenize_fasta(path, k_size): # returns {header: [k-mers]} right now. Goal is to return {header: [embeddigns]}
+def tokenize_fasta(path, k_size): # Goal is to return {header: [embeddings]}
     d = {}
     with open(path) as file:
         header = ''
@@ -25,7 +19,7 @@ def tokenize_fasta(path, k_size): # returns {header: [k-mers]} right now. Goal i
             else:
                 is_header = 1
 
-            if is_header = 1
+            if is_header == 1:
                 sequence += l
         d[header] = stream_kmers(sequence, k_size)
     return d
@@ -34,18 +28,24 @@ def tokenize_fasta(path, k_size): # returns {header: [k-mers]} right now. Goal i
 def stream_kmers(sequence, k_size): # doesn't stream k-mers yet, right now it saves k-mers in a list and returns the list
     k_mers_list = []
     for index in range(0, len(sequence)-k_size+1):
-        k-mers_list.append(sequence[index:index+k_size])
+        k-mers_list.append(k_mer2embed(canonical(sequence[index:index+k_size])))
 
     return k_mers_list
 
 def k_mer2embed(k_mer): # return embedding for a single k-mer
     label_encodings = le.transform(list(k-mer))
+    ### TODO! return an embedding of a k-mer from a pre-trained nucleotide transformer
 
+
+
+def canonical(sequnece): # take a sequence, and return its caonical form
+    let revc = revcomp(sequence)
+    if revc > sequence:
+        return sequence
+    return revc
 
 def revcomp(nucl): # take a nucleotide and return its reverse complement
     revc = ''
     for i in nucl[::-1]:
         revc += COMP[i]
     return revc
-
-

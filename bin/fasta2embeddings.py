@@ -33,7 +33,7 @@ def stream_kmers(sequence, k_size): # doesn't stream k-mers yet, right now it sa
     return k_mers_list
 
 def k_mer2embed(k_mer): # return embedding for a single k-mer
-    label_encodings = le.transform(list(k-mer))
+    label_encodings = le.transform(list(k_mer))
     ### TODO! return an embedding of a k-mer from a pre-trained nucleotide transformer
     return label_encodings
 

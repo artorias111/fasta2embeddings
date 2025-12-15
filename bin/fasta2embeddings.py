@@ -28,18 +28,17 @@ def tokenize_fasta(path, k_size): # Goal is to return {header: [embeddings]}
 def stream_kmers(sequence, k_size): # doesn't stream k-mers yet, right now it saves k-mers in a list and returns the list
     k_mers_list = []
     for index in range(0, len(sequence)-k_size+1):
-        k-mers_list.append(k_mer2embed(canonical(sequence[index:index+k_size])))
+        k_mers_list.append(k_mer2embed(canonical(sequence[index:index+k_size])))
 
     return k_mers_list
 
 def k_mer2embed(k_mer): # return embedding for a single k-mer
     label_encodings = le.transform(list(k-mer))
     ### TODO! return an embedding of a k-mer from a pre-trained nucleotide transformer
-
-
+    return label_encodings
 
 def canonical(sequnece): # take a sequence, and return its caonical form
-    let revc = revcomp(sequence)
+    revc = revcomp(sequence)
     if revc > sequence:
         return sequence
     return revc

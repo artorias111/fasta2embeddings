@@ -28,3 +28,9 @@ process verify_safetensors {
   python ${projectDir}/bin/check_embeddings.py --safetensor ${combined_safetensor} > safetensor.dimension_check.txt
   """
 }
+
+workflow {
+  seq = Channel.fromPath(params.sequence)
+  generate_safetensors(seq)
+  verify_safetensors(generate_safetensors.out.combined_safetensor)
+}

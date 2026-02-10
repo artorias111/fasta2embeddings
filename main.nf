@@ -9,13 +9,14 @@ process generate_safetensors {
 
   script:
   """
-  source actvate ${params.evo2_venv}/bin/activate
-
+  easyevo2 embed ${sequences} --output ${sequences.baseName}
   """
 }
 
 
 process verify_safetensors { 
+  label 'cpu_process'
+
   input:
   path combined_safetensor
 
@@ -24,5 +25,6 @@ process verify_safetensors {
 
   script:
   """
+  python ${projectDir}/bin/check_embeddings.py --safetensor ${combined_safetensor} > safetensor.dimension_check.txt
   """
 }

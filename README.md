@@ -23,5 +23,8 @@ The pipeline expects the following in your environment (can be `conda` or `venv`
 - EasyEvo2 : https://github.com/ylab-hi/EasyEvo2
 
 ### Output
-Standard nextflow output format. There's two directories: `work` and `results`. The `results` directory contains a cleaned up collection of output files symlinked to the original files in `work`.  
+Embeddings are in the safetensors format (https://github.com/huggingface/safetensors).  
+Keep in mind that by default, embeddings the same length as the sequence. So if your sequences are of different lengths, your embeddings will also reflect the same. That's not ideal for most downstream analyses without filtering. On the flipside, an ideal case to use without filtering would be to generate embeddings for _k_-mers. 
+
+There's two directories: `work` and `results`. The `results` directory contains a cleaned up collection of output files symlinked to the original files in `work`.  
 See https://www.nextflow.io/docs/latest/workflow.html#outputs for more information.  

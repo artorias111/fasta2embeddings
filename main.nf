@@ -37,6 +37,7 @@ process verify_safetensors {
 
 workflow {
   seq = Channel.fromPath(params.sequence)
+            .splitFasta(by: 50000, file: true)
   generate_safetensors(seq)
   verify_safetensors(generate_safetensors.out.combined_safetensor)
 }

@@ -40,3 +40,4 @@ workflow {
   generate_safetensors(seq)
   verify_safetensors(generate_safetensors.out.combined_safetensor)
 }
+

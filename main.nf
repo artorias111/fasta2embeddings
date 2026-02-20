@@ -35,8 +35,20 @@ process verify_safetensors {
 }
 
 workflow {
-    seq_chunks = Channel.fromPath(params.sequence)
-        .splitFasta(by: params.chunksize, file: true)
+    seq_file = file(params.sequence)
+    
+    // Thanks for the regex Claude
+    if (seq_file.name ==~ /.*(?i)\.(fastq|fq)(\.gz)?$/) {
+        seq_chunks = Channel.fromPath(params.sequence)
+            .splitFastq(by: params.chunksize, file: true)
+            
+    } else if (seq_file.name ==~ /.*(?i)\.(fasta|fa|fna)(\.gz)?$/) {
+        seq_chunks = Channel.fromPath(params.sequence)
+            .splitFasta(by: params.chunksize, file: true)
+            
+    } else {
+        error "Unsupported file format: ${seq_file.name}. Please provide a FASTA (.fa, .fasta) or FASTQ (.fq, .fastq) file."
+    }
 
     gen_out = generate_safetensors(seq_chunks)
     

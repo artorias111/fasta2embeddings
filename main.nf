@@ -1,27 +1,47 @@
 process generate_safetensors { 
   label 'gpu_process'
-  publishDir 'results/safetensors', mode: 'symlink'
-
+  
   input: 
-  path sequences // this can be a fasta or a fastq or a fastq.gz
+  path sequences
 
   output:
-  path "*_combined.safetensors", emit: combined_safetensor
+  path "*_chunk.safetensors", emit: chunk_safetensors
 
   script:
   """
-  easyevo2 embed ${sequences} --output ${sequences.baseName}
-  python ${projectDir}/bin/merge_safetensors.py \
-  --prefix "${sequences.baseName}" \
-  --output "${sequences.baseName}_combined.safetensors" \
+  easyevo2 embed ${sequences} --output temp_embed
+  
+  # Merge the tiny 100-seq shards easyevo2 creates for this specific chunk
+  python ${projectDir}/bin/merge_safetensors.py \\
+  --prefix "temp_embed" \\
+  --output "${sequences.baseName}_chunk.safetensors" \\
   --cleanup
   """
 }
 
+process final_merge {
+  label 'cpu_process'
+  publishDir 'results/safetensors', mode: 'symlink'
+
+  input:
+  val base_name
+  path all_chunks // Receives a list of all chunked safetensors
+
+  output:
+  path "${base_name}_combined.safetensors", emit: final_safetensor
+
+  script:
+  """
+  # Merge all the chunks into your final file
+  python ${projectDir}/bin/merge_safetensors.py \\
+  --files ${all_chunks} \\
+  --output "${base_name}_combined.safetensors"
+  """
+}
 
 process verify_safetensors { 
   label 'cpu_process'
-  publishDir 'results/embeddings_summary', mode: 'symlink'
+  publishDir 'results/embeddings_summary', mode: 'copy'
 
   input:
   path combined_safetensor
@@ -36,8 +56,17 @@ process verify_safetensors {
 }
 
 workflow {
-  seq = Channel.fromPath(params.sequence)
-  generate_safetensors(seq)
-  verify_safetensors(generate_safetensors.out.combined_safetensor)
-}
+  // Grab the base name to use for the final output file
+  base_name = file(params.sequence).baseName
 
+  // Split into chunks of 50,000 for parallel GPU processing
+  seq_chunks = Channel.fromPath(params.sequence)
+                      .splitFasta(by: 50000, file: true)
+
+  gen_out = generate_safetensors(seq_chunks)
+  
+  // .collect() waits for all chunks to finish, then gathers them into a list for final_merge
+  merged_out = final_merge(base_name, gen_out.chunk_safetensors.collect())
+  
+  verify_safetensors(merged_out.final_safetensor)
+}

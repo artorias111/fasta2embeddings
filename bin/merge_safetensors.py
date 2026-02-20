@@ -1,61 +1,59 @@
 #!/usr/bin/env python3
-import torch
-from safetensors.torch import load_file, save_file
+import argparse
 import glob
 import os
-import argparse
 import sys
+from safetensors.torch import load_file, save_file
 
-def merge_safetensors(prefix, output_file, delete_partials=False):
-    # Find all partial files (e.g., prefix.100.safetensors, prefix.200.safetensors)
-    # We exclude the output file name itself to avoid accidental recursive loading
-    search_pattern = f"{prefix}.*.safetensors"
-    files = sorted([
-        f for f in glob.glob(search_pattern) 
-        if os.path.basename(f) != os.path.basename(output_file)
-    ])
+def main():
+    parser = argparse.ArgumentParser(description="Merge safetensor dictionaries.")
+    parser.add_argument("--prefix", help="Prefix of files to merge")
+    parser.add_argument("--files", nargs='+', help="Exact list of files to merge")
+    parser.add_argument("--output", required=True, help="Final output file")
+    parser.add_argument("--cleanup", action="store_true", help="Delete merged files")
+    args = parser.parse_args()
 
-    if not files:
-        print(f"Error: No partial files found matching pattern: {search_pattern}")
+    # Determine files to merge based on arguments
+    if args.files:
+        files = args.files
+    elif args.prefix:
+        search_pattern = f"{args.prefix}*.safetensors"
+        files = [f for f in glob.glob(search_pattern) if os.path.basename(f) != os.path.basename(args.output)]
+    else:
+        print("Must provide --prefix or --files")
         sys.exit(1)
 
-    print(f"Found {len(files)} partial files. Merging...")
+    if not files:
+        print("No partial files found.")
+        sys.exit(0)
 
+    print(f"Found {len(files)} files to merge.")
+    
+    # Safely merge dictionaries (your original, correct logic!)
     combined = {}
     for f in files:
-        print(f"  Loading {f}...")
         try:
-            # load_file returns a dict-like object mapping keys to tensors
             part = load_file(f)
             combined.update(part)
         except Exception as e:
-            print(f"  FAILED to load {f}: {e}")
+            print(f"FAILED to load {f}: {e}")
             sys.exit(1)
 
-    print(f"Merge complete. Total sequences/tensors: {len(combined)}")
-    
+    print(f"Merge complete. Total sequences: {len(combined)}")
     try:
-        save_file(combined, output_file)
-        print(f"Successfully saved combined file to: {output_file}")
+        save_file(combined, args.output)
+        print(f"Saved to {args.output}")
     except Exception as e:
-        print(f"  FAILED to save {output_file}: {e}")
+        print(f"FAILED to save: {e}")
         sys.exit(1)
 
-    if delete_partials:
-        print("Cleaning up partial files...")
+    # Cleanup only what was merged
+    if args.cleanup:
         for f in files:
-            os.remove(f)
-
-def main():
-    parser = argparse.ArgumentParser(description="Merge partial safetensor files into a single file.")
-    parser.add_argument("--prefix", required=True, help="The prefix of the partial files (e.g., 'results_part')")
-    parser.add_argument("--output", required=True, help="The name of the final combined file (e.g., 'final.safetensors')")
-    parser.add_argument("--cleanup", action="store_true", help="Delete partial files after a successful merge")
-
-    args = parser.parse_args()
-
-    merge_safetensors(args.prefix, args.output, args.cleanup)
+            try:
+                os.remove(f)
+            except OSError:
+                pass
 
 if __name__ == "__main__":
     main()
-

@@ -24,7 +24,7 @@ The pipeline expects the following in your environment (can be `conda` or `venv`
 
 ### Output
 Embeddings are in the safetensors format (https://github.com/huggingface/safetensors).  
-Keep in mind that by default, embeddings are the same length as the sequence (the exact dimensions can differ based on the Evo 2 model you're using) - see EasyEvo2's documentation. If your sequences are of different lengths, your embeddings will also reflect the same. That's not ideal for most downstream analyses without filtering. On the flipside, an ideal case to use without filtering would be to generate embeddings for _k_-mers. 
+A word of caution: The embeddings are the same length as the sequence (the exact dimensions can differ based on the Evo 2 model you're using) - see EasyEvo2's documentation. If your sequences are of different lengths, your embeddings will also reflect the same. That's not ideal for most downstream analyses without filtering. On the flipside, an ideal case to use without filtering would be to generate embeddings for _k_-mers. 
 
-There's two directories: `work` and `results`. The `results` directory contains a cleaned up collection of output files symlinked to the original files in `work`.  
+There's two directories: `work` and `*.safetensors`. The `*.safetensors` directory contains a cleaned up collection of output files. `work` contains all the intermediate files and also a copy of the final output. You can safely remove this once you have all your safetensors. 
 See https://www.nextflow.io/docs/latest/workflow.html#outputs for more information.  

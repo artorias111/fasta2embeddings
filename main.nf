@@ -8,7 +8,7 @@ process generate_safetensors {
     path sequences
 
     output:
-    path "*_chunk.safetensors", emit: chunk_safetensors
+    path "*_chunk.*.safetensors", emit: chunk_safetensors
 
     script:
     """

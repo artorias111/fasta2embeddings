@@ -122,8 +122,6 @@ if __name__=="__main__":
     optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
 
     # training loop
-
-
     for epoch in range(epochs):
         model.train()
         running = 0.0
@@ -133,8 +131,3 @@ if __name__=="__main__":
             loss.backward()
             optimizer.step()
             running += loss.item() * len(xb)
-
-    model.eval()
-    with torch.no_grad():
-        acc = ((model(X_test) > 0).float() == y_test).float().mean()
-    print(f"epoch {epoch+1:2d} | loss {running/n_train:.4f} | test acc {acc:.3f}")
